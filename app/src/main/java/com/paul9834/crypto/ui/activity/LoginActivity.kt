@@ -54,6 +54,22 @@ class LoginActivity : AppCompatActivity() {
                 if(it.isSuccessful) {
                     val username = username.text.toString()
 
+                    firestoreService.findUserById(username, object : Callback<User> {
+                        override fun onSucess(result: User?) {
+
+                            if (it == null) {
+                                val user = User()
+                                user.username = username
+                                saverUserAndStartMainActivity(user, view)
+                            } else {
+                                startMainActivity(username)
+                            }
+                        }
+                        override fun onFailed(exception: Exception) {
+                            showErrorMessage(view)
+                        }
+                    })
+
                     val user = User()
                     user.username = username
 
