@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "922589381496",
+    "project_id": "platzifirebase-d1252",
+    "storage_bucket": "platzifirebase-d1252.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922589381496:android:39c0f699b3f9129f4f3e8d",
+        "android_client_info": {
+          "package_name": "com.paul9834.crypto"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "922589381496-i2iuhh4n10gvd9vng11lfqlhec2ksckj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC9Q9w9XSSH-3kouYqnBcjRXzqI1o5N9uA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "922589381496-i2iuhh4n10gvd9vng11lfqlhec2ksckj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
