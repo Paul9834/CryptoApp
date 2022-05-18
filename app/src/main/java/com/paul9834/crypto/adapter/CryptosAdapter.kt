@@ -46,9 +46,6 @@ class CryptosAdapter (val cryptosAdapterLister: CryptosAdapterLister) : Recycler
             cryptosAdapterLister.onBuyCryptoClicked(crypto)
         }
 
-
-
-
     }
 
     override fun getItemCount(): Int {
