@@ -61,6 +61,7 @@ class LoginActivity : AppCompatActivity() {
                                 val user = User()
                                 user.username = username
                                 saverUserAndStartMainActivity(user, view)
+
                             } else {
                                 startMainActivity(username)
                             }
@@ -69,11 +70,6 @@ class LoginActivity : AppCompatActivity() {
                             showErrorMessage(view)
                         }
                     })
-
-                    val user = User()
-                    user.username = username
-
-                    saverUserAndStartMainActivity(user, view)
 
                 } else {
                     showErrorMessage(view)
