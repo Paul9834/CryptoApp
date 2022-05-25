@@ -57,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
                     firestoreService.findUserById(username, object : Callback<User> {
                         override fun onSucess(result: User?) {
 
-                            if (it == null) {
+                            if (result == null) {
                                 val user = User()
                                 user.username = username
                                 saverUserAndStartMainActivity(user, view)

@@ -5,10 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.paul9834.crypto.R
 import com.paul9834.crypto.adapter.CryptosAdapter
 import com.paul9834.crypto.adapter.CryptosAdapterLister
@@ -16,6 +18,7 @@ import com.paul9834.crypto.firestore.model.Crypto
 import com.paul9834.crypto.firestore.model.User
 import com.paul9834.crypto.network.Callback
 import com.paul9834.crypto.network.FirestoreService
+import com.paul9834.crypto.network.RealTimeListener
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_trader.*
 import java.lang.Exception
@@ -56,54 +59,64 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterLister {
         loadCryptos()
 
         fab.setOnClickListener { view ->
+
             Snackbar.make(view, getString(R.string.generating_new_cryptos), Snackbar.LENGTH_SHORT)
                 .setAction("Info", null).show()
+
+            generateCryptoCurrenciasRandom()
+
         }
 
     }
 
-    private fun loadCryptos() {
+    private fun generateCryptoCurrenciasRandom() {
+        for (crypto in cryptosAdapter.cryptoList) {
 
+            val amount = (1..10).random()
+            crypto.avalaible += amount
+            firestoreService.updateCrypto(crypto)
+
+        }
+    }
+
+    private fun loadCryptos() {
         firestoreService.getCryptosList(object : Callback<List<Crypto>> {
 
             override fun onSucess(cryptoList: List<Crypto>?) {
 
                 firestoreService.findUserById(username!!, object : Callback<User> {
-
                     override fun onSucess(result: User?) {
-
                         user = result
                         if (user!!.cryptoList == null) {
-
-                           val userCryptoList = mutableListOf<Crypto>()
+                            val userCryptoList = mutableListOf<Crypto>()
 
                             for (crypto in cryptoList!!) {
-
                                 val cryptoUser = Crypto()
-
                                 cryptoUser.name = crypto.name
-                                cryptoUser.avalaible = crypto.avalaible
+
+                                //cryptoUser.avalaible = crypto.avalaible
+
+                                cryptoUser.avalaible = 0
+
+                                var disponible = crypto.avalaible
+
+                                Log.e("AVALAIBLE", "$disponible cantidad"  );
+
+
                                 cryptoUser.image_url = crypto.image_url
-
                                 userCryptoList.add(cryptoUser)
-
                             }
-
                             user!!.cryptoList = userCryptoList
                             firestoreService.updateUser(user!!, null)
-
                         }
-
                         loadUserCryptos()
+                        addRealTimeDatabaseListeners(user!!, cryptoList!!)
 
                     }
 
                     override fun onFailed(exception: Exception) {
-
-                    showGeneralServerErrorMessage()
-
+                        showGeneralServerErrorMessage()
                     }
-
 
                 })
 
@@ -113,11 +126,61 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterLister {
                     cryptosAdapter.notifyDataSetChanged()
                 }
             }
+
             override fun onFailed(exception: Exception) {
-                Log.e("TraderActivity", "error loading cryptos", exception)
+                Log.e("TraderActivity", "error loading criptos", exception)
                 showGeneralServerErrorMessage()
             }
+
+
         })
+    }
+
+    private fun addRealTimeDatabaseListeners(user: User, cryptoList: List<Crypto>) {
+
+        firestoreService.listenForUpdates(user, object: RealTimeListener<User> {
+
+            override fun onDataChanged(updateData: User) {
+
+                this@TraderActivity.user = updateData
+                loadUserCryptos()
+
+            }
+
+            override fun onError(exception: Exception) {
+                showGeneralServerErrorMessage()
+            }
+
+            override fun onErrorFirebase(firebaseFirestoreException: FirebaseFirestoreException) {
+                showGeneralServerErrorMessage()
+            }
+
+
+        })
+        firestoreService.listenForUpdatesList(cryptoList, object : RealTimeListener<Crypto> {
+            override fun onDataChanged(updateData: Crypto) {
+                var pos = 0
+                for (crypto in cryptosAdapter.cryptoList) {
+                    if(crypto.name.equals(updateData.name)) {
+                        crypto.avalaible = updateData.avalaible
+                        cryptosAdapter.notifyItemChanged(pos)
+                    }
+                    pos++
+                }
+            }
+
+            override fun onError(exception: Exception) {
+               showGeneralServerErrorMessage()
+            }
+
+
+            override fun onErrorFirebase(firebaseFirestoreException: FirebaseFirestoreException) {
+              showGeneralServerErrorMessage()
+            }
+
+
+        }
+        )
 
     }
 
@@ -167,8 +230,28 @@ class TraderActivity : AppCompatActivity(), CryptosAdapterLister {
     }
 
     override fun onBuyCryptoClicked(crypto: Crypto) {
-
-
-
+        var flag = false
+        if (crypto.avalaible > 0) {
+            for (cryptoUser in user!!.cryptoList!!) {
+                if (cryptoUser.name == crypto.name) {
+                    cryptoUser.avalaible += 1
+                    flag = true
+                    break
+                }
+            }
+            if (!flag) {
+                Log.e("COIN", "NO EXITE CRYPTO")
+                val cryptoUser = Crypto()
+                cryptoUser.name = crypto.name
+                cryptoUser.avalaible = 1
+                cryptoUser.image_url = crypto.image_url
+                user!!.cryptoList = user!!.cryptoList!!.plusElement(cryptoUser)
+            }
+            crypto.avalaible--
+            firestoreService.updateUser(user!!, null)
+            firestoreService.updateCrypto(crypto)
+        } else {
+            Toast.makeText(this, "No hay suficientes criptomonedas disponibles", Toast.LENGTH_SHORT).show()
+        }
     }
 }

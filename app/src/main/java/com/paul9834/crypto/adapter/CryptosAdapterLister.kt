@@ -8,6 +8,4 @@ interface CryptosAdapterLister  {
     fun onBuyCryptoClicked(crypto: Crypto)
 
 
-
-
 }
